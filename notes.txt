@@ -1,0 +1,9 @@
+1. .env must be in the root folder, i.e., same folder as package.json
+2. no such models here using mongoose => working under the assumption that table has been created.
+3. installed express, cors, mysql2, bcryptjs, cookie-parser, jsonwebtoken...
+4. In mysql2, .execute is used over .query because (Use .execute() for safety and better performance in most use cases; Use .query() for complex dynamic SQL or debugging, but with extra caution.)
+5. Don't use: phpmyadmin=http://localhost/phpmyadmin; This doesn't connect to your database — it just opens the browser interface.
+6. Use type: "module" in package.json 
+7. "scripts": { "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js" },
+8.
+
