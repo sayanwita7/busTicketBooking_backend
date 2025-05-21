@@ -4,7 +4,7 @@ import { getConnection } from "../db/index.js";
 import jwt from "jsonwebtoken"
 import 'dotenv/config'
 
-console.log("Connection starting...")
+console.log("Connection starting in user controller...")
 const conn = await getConnection();
 
 const generateAccessAndRefreshTokens = async (userId, email) => {

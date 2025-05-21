@@ -11,10 +11,10 @@ const connectDB = async () => {
             password: process.env.PASSWORD,
             database: process.env.DATABASE,
             });
-        console.log("✅ MySQL connected successfully.");
+        console.log("✅ MySQL connected successfully in index.");
         return connection;
     } catch (err) {
-        console.error("❌ MySQL connection failed:", err);
+        console.error("❌ MySQL connection failed in index:", err);
         throw err;
     }
 };
