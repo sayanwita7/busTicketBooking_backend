@@ -92,7 +92,12 @@ const login = asyncHandler (async (req, res) => {
     //return response
     
     return res.cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options).json ({message: "User logged in..."})
+    .cookie("refreshToken", refreshToken, options)
+    .json (
+      {
+        message: "User logged in...", 
+        userId: user.userId
+      })
   } catch (error) {
     console.log(error.message)
     throw new Error("Something went wrong while logging user in.")

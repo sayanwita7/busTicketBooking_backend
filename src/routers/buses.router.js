@@ -1,8 +1,9 @@
 import { Router } from "express";
-import { findBus, bookSeat, fetchStops } from "../controllers/bus.controller.js";
+import { findBus, findSeat, bookSeat, fetchStops } from "../controllers/bus.controller.js";
 
 const router = Router ()
 router.route("/find-bus").post(findBus)
+router.route("/find-seat").post(findSeat)
 router.route("/book-seat").post(bookSeat)
 router.route("/fetch-stops").get(fetchStops)
 

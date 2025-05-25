@@ -6,6 +6,6 @@ router.route("/register").post(registerUser)
 router.route ("/login").post(login)
 
 //secured routes
-router.route("/logout").post (logout)
+router.route("/logout").post(logout)
 //router.route("/refresh-token").post(refreshAccessToken)
 export default router

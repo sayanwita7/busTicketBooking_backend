@@ -48,10 +48,10 @@ const findBus = asyncHandler (async (req, res) => {
 })
 
 const bookSeat = asyncHandler (async (req, res) => {
-  const {seatNumber, busId, userId, journeyDate} = req.body
+  const {seatNumber, busId, userId, journeyDate, start, stop, price} = req.body
     //validation - not empty
     if (
-        [seatNumber, busId, userId, journeyDate].some((field) => String(field)?.trim() === "")
+        [seatNumber, busId, userId, journeyDate,start,stop,price].some((field) => String(field)?.trim() === "")
     ){
         throw new Error ("All fields are required");
     }  
@@ -59,10 +59,50 @@ const bookSeat = asyncHandler (async (req, res) => {
     if (booking.length>0){
         throw new Error ("Seat already booked!")
     }
-    const [bookingDone] = await conn.execute('INSERT INTO bookings(userId, busId, journeyDate, seatNumber ) values(?,?,?,?)', [userId, busId, journeyDate, seatNumber])
-    console.log('Inserted ID:', bookingDone.insertId);
-    return res.json({message:"Booked!"});
+    const [bookingDone] = await conn.execute('INSERT INTO bookings(userId, busId, journeyDate, seatNumber) values(?,?,?,?)', [userId, busId, journeyDate, seatNumber])
+    const bookingId = bookingDone.insertId
+    const [busDetails]= await conn.execute('SELECT busName, busNumber FROM buses WHERE Id=?',[busId])
+    const [ticketDone] = await conn.execute('INSERT INTO tickets(bookingId, journeyDate, start, stop, seatNumber, price ) values(?,?,?,?,?,?)', [bookingId, journeyDate, start, stop,seatNumber,  price])
+    //console.log('Inserted ID:', bookingDone.insertId);
+    return res.json({message:"Booking Done!", 
+        bookingDetails:{
+            busName:busDetails[0].busName,
+            busNumber: busDetails[0].busNumber,
+            bookingId: bookingId, 
+            ticketId: ticketDone.insertId, 
+            start:start,
+            stop:stop,
+            journeyDate:journeyDate,
+            seatNumber: seatNumber,
+            price:price,
+        }
+    });
+})
+
+const findSeat = asyncHandler (async (req, res) => {
+    const busIdString= req.body.busId
+    const journeyDateString= req.body.journeyDate
+    //validation - not empty
+    if ([busIdString,journeyDateString].some((field) => String(field)?.trim() === "")){
+        throw new Error ("All fields are required");
+    }  
+    const busId=Number(busIdString)
+    const journeyDateObj = new Date(journeyDateString)
+    const journeyDate = journeyDateObj.toISOString().split("T")[0];
+    const [seats] = await conn.execute('SELECT seatNumber FROM bookings WHERE busId=? AND journeyDate=?',[busId, journeyDate]);
+    const seatNumbers = seats.map(({ seatNumber }) => seatNumber);
+    return res.json(seatNumbers);
+})
+
+const fetchTicket = asyncHandler (async (req, res) => {
+    const ticketIdString= req.body.ticketId
+    //validation - not empty
+    if ([ticketIdString].some((field) => String(field)?.trim() === "")){
+        throw new Error ("All fields are required");
+    }  
+    const ticketId=Number(ticketIdString)
+    const [seats] = await conn.execute('SELECT tickets.journeyDate, buses.busName, buses.busNumber, tickets.seatNumber, buses.departure, tickets.start, tickets.stop, tickets.price FROM tickets INNER JOIN bookings ON tickets.bookingId = bookings.bookingId INNER JOIN buses ON bookings.busId = buses.Id');
 })
 
 //await conn.end();
-export {findBus, bookSeat, fetchStops}
+export {fetchStops, findBus, bookSeat, findSeat, fetchTicket }
