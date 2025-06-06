@@ -5,15 +5,12 @@ console.log("Connection starting in route controller...")
 const conn = await getConnection();
 
 const fetchStops = asyncHandler (async (req, res) => {
-          
     const [stops] = await conn.execute('SELECT DISTINCT stopName FROM routestop');
-    
     if (stops.length ==0){
         throw new Error ("Buses unavailable!")
     }
-
     const stopNames = stops.map(({ stopName }) => stopName);
-    console.log(stopNames)
+    //console.log(stopNames)
     return res.json(stopNames);
 })
 
@@ -94,15 +91,57 @@ const findSeat = asyncHandler (async (req, res) => {
     return res.json(seatNumbers);
 })
 
-const fetchTicket = asyncHandler (async (req, res) => {
-    const ticketIdString= req.body.ticketId
+const fetchUserTickets = asyncHandler (async (req, res) => {
+    const userIdString = req.body.userId
     //validation - not empty
-    if ([ticketIdString].some((field) => String(field)?.trim() === "")){
+    if ([userIdString].some((field) => String(field)?.trim() === "")){
         throw new Error ("All fields are required");
-    }  
-    const ticketId=Number(ticketIdString)
-    const [seats] = await conn.execute('SELECT tickets.journeyDate, buses.busName, buses.busNumber, tickets.seatNumber, buses.departure, tickets.start, tickets.stop, tickets.price FROM tickets INNER JOIN bookings ON tickets.bookingId = bookings.bookingId INNER JOIN buses ON bookings.busId = buses.Id');
+    } 
+    const userId = Number(userIdString) 
+    const [allTickets] = await conn.execute('SELECT bookings.bookingId, tickets.ticketId, tickets.journeyDate, buses.busName, buses.busNumber, tickets.seatNumber, buses.departure, tickets.start, tickets.stop, tickets.price FROM tickets INNER JOIN bookings ON tickets.bookingId = bookings.bookingId INNER JOIN buses ON bookings.busId = buses.Id WHERE bookings.userId=?', [userId]);
+    const tickets = allTickets.map(
+        ({ bookingId, ticketId, journeyDate, busName, busNumber, seatNumber, departure, start, stop, price }) => ({
+            bookingId,
+            ticketId,
+            journeyDate,
+            busName,
+            busNumber,
+            seatNumber,
+            departure,
+            start,
+            stop,
+            price
+        })
+        );
+    // console.log(allTickets)
+    return res.json(tickets)
 })
 
-//await conn.end();
-export {fetchStops, findBus, bookSeat, findSeat, fetchTicket }
+const cancelTicket = asyncHandler (async (req, res) => {
+    try {
+        const bookingIdString = req.body.bookingId
+        //validation - not empty
+        if ([bookingIdString].some((field) => String(field)?.trim() === "")){
+            throw new Error ("All fields are required");
+        } 
+        const bookingId = Number(bookingIdString) 
+
+        const [booking] = await conn.execute('SELECT bookingId FROM bookings WHERE bookingId=?',[bookingId]);
+        if (booking.length == 0){
+            return res.json ("No such booking present!")
+        }
+        else{
+            const [deleteTicket] = await conn.execute('DELETE FROM tickets WHERE bookingId=?', [bookingId]);
+            const [deleteBooking] = await conn.execute('DELETE FROM bookings WHERE bookingId=?', [bookingId]);
+            console.log(deleteTicket)
+            console.log(deleteBooking)
+            
+            return res.json({message: "Cancellation successful!" })
+        }
+        
+        
+    } catch (error) {
+        console.log("Error in cancelletion: ", error)
+    }
+})
+export {fetchStops, findBus, bookSeat, findSeat, fetchUserTickets, cancelTicket }

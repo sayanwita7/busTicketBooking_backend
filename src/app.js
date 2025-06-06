@@ -6,7 +6,7 @@ import cookieParser from "cookie-parser"
 // app.use(cors({
 //     origin: process.env.CORS_ORIGIN,
 //     credentials: true
-// })) //cors is used for fetching data from our frontend
+// })) 
 const app = express()
 app.use(cors())
 app.use(express.json({limit: "16kb"})) //when taking input of data from form
